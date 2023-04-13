@@ -14,7 +14,7 @@ public  class CommonJsonObject<T> {
 			this.jsonStringForObj = sourceJson;
 	}
 
-	public Object objectFromJsaon(String json, Class<T> proto) {
+	public T objectFromJsaon(String json, Class<T> proto) {
 		// TODO Auto-generated method stub
 		ObjectMapper  mapper = new  ObjectMapper ();
 		T ret = null;

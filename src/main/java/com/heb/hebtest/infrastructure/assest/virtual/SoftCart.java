@@ -12,6 +12,7 @@ public class SoftCart extends CommonJsonObject<SoftCart> {
 	private int id; 
 	private List <StoreProduct> contentsOfCart;
 	private Receipt cartReceipt;
+	private String rawJson;
 	
 	public SoftCart(String sourceJson, Class<SoftCart> targetObj) {
 		super(sourceJson, targetObj);
