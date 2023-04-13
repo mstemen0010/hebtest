@@ -1,6 +1,10 @@
 # hebtest
 code for HEB take home assignment
-to run: 
-import/clone from Github into Eclipse
-install SpringTool on Eclipe
-once built, Run as SpringBoot from "Run" menu
+
+# to run: 
+<ol>
+<li>import/clone from Github into Eclipse
+<li>install SpringTool on Eclipe
+<li>Built Project
+<li>Run as SpringBoot from "Run" menu
+</ol>
