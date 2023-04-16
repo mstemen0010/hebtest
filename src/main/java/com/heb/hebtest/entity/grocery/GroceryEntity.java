@@ -31,13 +31,13 @@ public class GroceryEntity {
 	private int sku;
 	private boolean isTaxable;
 	private boolean isOwnBrand;
-	private float price;
+	private double price;
  
     public GroceryEntity() {
     	
     }
     
-    public GroceryEntity (int sku, String itemName, boolean isTaxable, boolean isOwnBrand, float price ) {
+    public GroceryEntity (int sku, String itemName, boolean isTaxable, boolean isOwnBrand, double price ) {
     	this.setSku(sku);
     	this.setItemName(itemName);
     	this.setIsTaxable(isTaxable);
@@ -62,11 +62,11 @@ public class GroceryEntity {
 		this.id = id;
 	}
 
-	public float getPrice() {
+	public double getPrice() {
 		return price;
 	}
 
-	public void setPrice(float price) {
+	public void setPrice(double price) {
 		this.price = price;
 	}
 
