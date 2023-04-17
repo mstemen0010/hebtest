@@ -9,6 +9,9 @@ code for HEB take home assignment
 <li>Run as SpringBoot from "Run" menu
 </ol>
 
+** Note the code assumes that the cart.json is in the directory that cuel is run from. The install will added a file to /main/java/resources callled "data.json" 
+--(this is the couppn json file renamed) 
+
 
 # API thusfar: 
 
