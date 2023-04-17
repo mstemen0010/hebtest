@@ -13,8 +13,12 @@ code for HEB take home assignment
 # API thusfar: 
 
 <uL>
-<li>http://localhost:8080/sub::
-    curl -v -H "Content-Type: application/json" -d @cart.json http://localhost:8080/sub
 <li>http://localhost:8080/total::
-    curl -v -H "Content-Type: application/json" -d @cart.json http://localhost:8080/total
+    Requirement #1:  curl -v -H "Content-Type: application/json" -d @cart.json http://localhost:8080/total
+<li>http://localhost:8080/calcTaxAll::
+    Requirement #2:  curl -v -H "Content-Type: application/json" -d @cart.json http://localhost:8080/calcTaxAll
+<li>http://localhost:8080/calcTaxable::
+    Requirement #2:  curl -v -H "Content-Type: application/json" -d @cart.json http://localhost:8080/calcTaxable
+<li>http://localhost:8080/calcAllAppyCoupons::
+    Requirement #2:  curl -v -H "Content-Type: application/json" -d @cart.json http://localhost:8080/calcAllAppyCoupons
 </ul>
