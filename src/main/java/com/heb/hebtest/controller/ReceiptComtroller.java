@@ -5,61 +5,101 @@ import java.util.EnumSet;
 import java.util.List;
 import java.util.stream.Collectors;
 
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RestController;
 
+import com.heb.hebtest.entity.coupon.CouponController;
 import com.heb.hebtest.entity.grocery.GroceryItem;
 import com.heb.hebtest.infrastructure.assest.virtual.SoftCart;
 import com.heb.hebtest.service.controller.receiptservice.Receipt;
 import com.heb.hebtest.service.controller.receiptservice.Receipt.ReceiptFieldType;
 
-
 @RestController
 public class ReceiptComtroller {
-	
-	
+
+	@Autowired
+	CouponController couponController;
+
 	SoftCart cart;
 	Receipt receipt;
-	// Feature #1 
-	@PostMapping(
-            value = "/total",
-            consumes = "application/json")
-	// public String sumTotal( @RequestBody String items ) {
-	public String sumTotal( @RequestBody List<GroceryItem> items ) {
-		receipt = new Receipt();
-		EnumSet.of(ReceiptFieldType.GrandTotal);
-		System.out.println("Got: " + items );
-		//List<GroceryItem> itemsList = new ArrayList<GroceryItem>();
-		Double sum = items.stream()
-				  .map(x -> x.getPrice())
-				  .collect(Collectors.summingDouble(Double::doubleValue));
-		
-		receipt.setTotal(sum);
-		return "sum is: " + sum;
+	Double sum = 0.0;
+	double taxableSum = 0.0;
+	
+	public ReceiptComtroller() {
+		this.receipt = new Receipt();
+		cart = new SoftCart();
+		cart.setCartReceipt(receipt);
 	}
 	
-	public String getGrandTotal( String jsonAsString  ) {
-		String retJson = null; 
-		
-		// return retJson;
-		return "Grand Total is: ";
+	// Feature #1
+	@PostMapping(value = { "/total", "/1" }, consumes = "application/json")
+	public String sumTotal(@RequestBody List<GroceryItem> items) {
+		cart.setContents(items);
+		receipt.addReceiptFieldType(ReceiptFieldType.GrandTotal);
+		sum = items.stream().map(x -> x.getPrice()).collect(Collectors.summingDouble(Double::doubleValue));
+
+		receipt.setGrandTotal(sum);
+		return receipt.toJson();
 	}
-	
-	
+
 	// Feature #2
-	@GetMapping("/sub")
-	public String getSubtotal( String jsonAsString) {
+	@PostMapping(value = { "/calcTaxAll", "/2" }, consumes = "application/json")
+	public String subTotal(@RequestBody List<GroceryItem> items) {
+		cart.setContents(items);
 		StringBuilder sb = new StringBuilder();
+		receipt.reset(false);
+		sumTotal(items);
+		receipt.setSubTotal(sum);
+		receipt.addReceiptFieldType(ReceiptFieldType.AllItemsTaxable);
+		receipt.addReceiptFieldType(ReceiptFieldType.GrandTotal);
+		receipt.addTaxOnField(ReceiptFieldType.GrandTotal);
+
+		return receipt.toJson();
+	}
+
+	// Feature #3
+	@PostMapping(value = { "/calcTaxable", "/3" }, consumes = "application/json")
+	public String sumAndTaxTotal(@RequestBody List<GroceryItem> items) {
+		cart.setContents(items);
+		receipt.reset(false);
+		receipt.addReceiptFieldType(ReceiptFieldType.GrandTotal);
+		sumTotal(items);
+		receipt.setSubTotal(sum);
+		taxableSum = items.stream().filter(w -> w.getIsTaxable()).map(x -> x.getPrice())
+				.collect(Collectors.summingDouble(Double::doubleValue));
 		
-		sb.append("Subtotal:").append("\n");
-		sb.append("Tax total:").append("\n");;
-		sb.append( getGrandTotal( jsonAsString )).append("\n");
-		
-		return sb.toString();
+		receipt.applySalesTaxToTaxaAbleSum(sum, taxableSum);
+		return receipt.toJson();
 	}
 	
+	// Feature #4
+		@PostMapping(value = { "/calcAllAppyCoupons", "/4" }, consumes = "application/json")
+		public String sumAllApplyCoupons(@RequestBody List<GroceryItem> items) {;
+			
+			sumTotal(items);
+			double discountTotal = cart.processCoupoms();
+			sumAndTaxTotal(cart.getCartContents());
+			receipt.addFieldAndValue(ReceiptFieldType.DiscountTotal, discountTotal);
+			double subTotalAfterDiscount = sum - discountTotal;
+			receipt.addFieldAndValue( ReceiptFieldType.SubtotalWithDiscounts, subTotalAfterDiscount);
+			double taxableTotalAfterDiscounts = taxableSum - discountTotal;
+			receipt.addFieldAndValue( ReceiptFieldType.TaxableSubtotalAfterDiscount, taxableTotalAfterDiscounts );
+			
+			receipt.addReceiptFieldType(ReceiptFieldType.GrandTotal);
+			sumTotal(items);
+			receipt.setSubTotal(sum);
+			double taxableSum = items.stream().filter(w -> w.getIsTaxable()).map(x -> x.getPrice())
+					.collect(Collectors.summingDouble(Double::doubleValue));
+			
+			receipt.applySalesTaxToTaxaAbleSum(sum, taxableSum);
+			return receipt.toJson();
+		}
+	
+	
+
 	@GetMapping("/error")
 	public String showError() {
 		return "Invalid Service request";
