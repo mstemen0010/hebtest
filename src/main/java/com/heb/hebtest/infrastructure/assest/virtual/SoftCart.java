@@ -1,15 +1,10 @@
 package com.heb.hebtest.infrastructure.assest.virtual;
 
-import java.util.List;
-import java.util.Map;
-
-import org.springframework.beans.factory.annotation.Autowired;
-
-import com.heb.hebtest.commonobj.virtual.StoreProduct;
-import com.heb.hebtest.commonutil.CommonJsonObject;
 import com.heb.hebtest.entity.coupon.CouponController;
 import com.heb.hebtest.entity.grocery.GroceryItem;
 import com.heb.hebtest.service.controller.receiptservice.Receipt;
+
+import java.util.List;
 
 public class SoftCart {
 
