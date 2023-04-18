@@ -14,15 +14,13 @@ import com.heb.hebtest.service.controller.receiptservice.Receipt;
 public class SoftCart {
 
 
-	@Autowired 
 	CouponController couponController;
 
-	private int id; 
 	private List <GroceryItem> cartContents;
 	private Receipt cartReceipt;
 	
 	public SoftCart( ) {
-				// TODO Auto-generated constructor stub
+		couponController = new CouponController();
 	}
 
 	public void setContents( List<GroceryItem> cartContents) {

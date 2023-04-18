@@ -13,37 +13,40 @@ import com.fasterxml.jackson.core.type.TypeReference;
 
 @Controller
 public class CouponController {
-	
+
 	List<Coupon__1> couponList;
+
 	public CouponController() {
 		this.loadCouponsFromJsonFile();
-			
+
 	}
-	
-	private void loadCouponsFromJsonFile( ) {
-		
+
+	private void loadCouponsFromJsonFile() {
+
 		try {
 			File jsonFile = new ClassPathResource("data.json").getFile();
 
 			ObjectMapper mapper = new ObjectMapper();
-			Coupon coupons = mapper.readValue( jsonFile,  Coupon.class );
+			Coupon coupons = mapper.readValue(jsonFile, Coupon.class);
 			couponList = coupons.getCoupons();
-		 
+
 		} catch (IOException e) {
 			// TODO Auto-generated catch block
 			e.printStackTrace();
 		}
-		
-		}
-	
-		public double getCouponValueForSku( int sku ) {
 
-		Coupon__1 couponFound = this.couponList.stream()
-				.filter(p->p.getAppliedSku().equals(sku))
-				.findAny()
+	}
+
+	public double getCouponValueForSku(int sku) {
+
+		Coupon__1 couponFound = this.couponList.stream().filter(p -> p.getAppliedSku().equals(sku)).findAny()
 				.orElse(null);
-				
-		return couponFound.getDiscountPrice();
+		double disPrice = 0.0;
+		if (couponFound != null) {
+			disPrice = couponFound.getDiscountPrice();
 		}
-	
+
+		return disPrice;
+	}
+
 }

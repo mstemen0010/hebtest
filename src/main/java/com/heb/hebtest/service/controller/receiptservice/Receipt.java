@@ -10,13 +10,14 @@ public class Receipt {
 		Subtotal,
 		SubtotalBeforeDiscounts,
 		DiscountTotal,
-		SubtotalWithDiscounts,
+		SubtotalAfterDiscounts,
 		TaxableSubTotal,
 		TaxableTotal,
 		CouponTotal,
 		TaxableSubtotalAfterDiscount,
 		TaxableItems,
 		AllItemsTaxable,
+		TotalTax,
 		GrandTotal;
 		
 	}
@@ -49,7 +50,7 @@ public class Receipt {
 		}
 	}
 	
-	public void applySalesTaxToTaxaAbleSum( double subTotal, double sumOfTaxable ) {
+	public double applySalesTaxToTaxaAbleSum( double subTotal, double sumOfTaxable ) {
 		 receiptType.add(ReceiptFieldType.TaxableSubTotal);
 		 receiptFields.put( ReceiptFieldType.TaxableSubTotal, sumOfTaxable);
 		 double tax = sumOfTaxable * this.getTaxRate();
@@ -57,6 +58,8 @@ public class Receipt {
 		 receiptFields.put( ReceiptFieldType.TaxableTotal, tax);
 		 double newGrandTotal = subTotal + tax;
 		 receiptFields.put(ReceiptFieldType.GrandTotal, newGrandTotal);
+		 
+		 return tax;
 	}
 
 	public Receipt() {
@@ -70,7 +73,9 @@ public class Receipt {
 	}
 	
 	public void addFieldAndValue( ReceiptFieldType field, double value) {
-		this.receiptType.add(field);
+		if( ! receiptFields.containsKey(field)) {
+			this.receiptType.add(field);
+		}
 		this.receiptFields.put( field, value);
 	}
 	
@@ -87,12 +92,16 @@ public class Receipt {
 	}
 	
 	public void setSubTotal( double newValue ) {
-		this.receiptType.add( ReceiptFieldType.Subtotal);
+		if ( ! this.receiptFields.containsKey( ReceiptFieldType.Subtotal )) {
+			this.receiptType.add( ReceiptFieldType.Subtotal);
+		}
 		this.receiptFields.put( ReceiptFieldType.Subtotal, newValue );
 	}
 		
 	public void setGrandTotal( double newValue ) {
-		this.receiptType.add( ReceiptFieldType.GrandTotal );
+		if ( ! this.receiptFields.containsKey( ReceiptFieldType.GrandTotal )) {
+			this.receiptType.add( ReceiptFieldType.GrandTotal );
+		}
 		this.receiptFields.put( ReceiptFieldType.GrandTotal, newValue );
 	}
 
@@ -100,55 +109,60 @@ public class Receipt {
 		StringBuilder jsonStrBuilder = new StringBuilder("{ \n \"Recipt\": { \n");
 
 		for( ReceiptFieldType receiptFieldType: receiptType ) {
+
 			if( receiptFieldType.equals(ReceiptFieldType.Subtotal) ) {
-				jsonStrBuilder.append( "\t\"Sub total:\"");
+				jsonStrBuilder.append( "\t\"Sub total\": ");
 				jsonStrBuilder.append(String.format( "%.2f", this.receiptFields.get(ReceiptFieldType.Subtotal)));
 				jsonStrBuilder.append(",\n");
 			}
 		
+	   		if( receiptFieldType.equals(ReceiptFieldType.SubtotalBeforeDiscounts) ) {
+				jsonStrBuilder.append( "\t\"Subtotal before discount\": ");
+				jsonStrBuilder.append( String.format( "%.2f", this.receiptFields.get(ReceiptFieldType.SubtotalBeforeDiscounts)));
+				jsonStrBuilder.append(",\n");
+			}
+
 			if( receiptFieldType.equals(ReceiptFieldType.TaxableSubTotal) ) {
-				jsonStrBuilder.append( "\t\"Taxable subtotal:\"");
+				jsonStrBuilder.append( "\t\"Taxable subtotal\": ");
 				jsonStrBuilder.append(String.format( "%.2f",  this.receiptFields.get(ReceiptFieldType.TaxableSubTotal)));
-				jsonStrBuilder.append("\n");
+				jsonStrBuilder.append(",\n");
 			}
 			
 	   		if( receiptFieldType.equals(ReceiptFieldType.DiscountTotal) ) {
-				jsonStrBuilder.append( "\t\"Discount total:\"");
+				jsonStrBuilder.append( "\t\"Discount total\": ");
 				jsonStrBuilder.append( String.format( "%.2f", this.receiptFields.get(ReceiptFieldType.DiscountTotal)));
-				jsonStrBuilder.append("\n");
+				jsonStrBuilder.append(",\n");
 			}
 	   		
-	   		if( receiptFieldType.equals(ReceiptFieldType.SubtotalBeforeDiscounts) ) {
-				jsonStrBuilder.append( "\t\"Subtotal before discount:\"");
-				jsonStrBuilder.append( String.format( "%.2f", this.receiptFields.get(ReceiptFieldType.SubtotalBeforeDiscounts)));
-				jsonStrBuilder.append("\n");
+	   			   		   
+			if( receiptFieldType.equals(ReceiptFieldType.SubtotalAfterDiscounts) ) {
+				jsonStrBuilder.append( "\t\"Subtotal after discounts\": ");
+				jsonStrBuilder.append( String.format( "%.2f", this.receiptFields.get(ReceiptFieldType.SubtotalAfterDiscounts)));
+				jsonStrBuilder.append(",\n");
 			}
-	   		
-	   		if( receiptFieldType.equals(ReceiptFieldType.DiscountTotal) ) {
-				jsonStrBuilder.append( "\t\"Discount total:\"");
-				jsonStrBuilder.append( String.format( "%.2f", this.receiptFields.get(ReceiptFieldType.DiscountTotal)));
-				jsonStrBuilder.append("\n");
-			}
-	   		   
-			if( receiptFieldType.equals(ReceiptFieldType.SubtotalWithDiscounts) ) {
-				jsonStrBuilder.append( "\t\"Subtotal after discounts:\"");
-				jsonStrBuilder.append( String.format( "%.2f", this.receiptFields.get(ReceiptFieldType.SubtotalWithDiscounts)));
-				jsonStrBuilder.append("\n");
+			
+			if( receiptFieldType.equals(ReceiptFieldType.TaxableSubtotalAfterDiscount) ) {
+				jsonStrBuilder.append( "\t\"Taxable Subtotal after discounts\": ");
+				jsonStrBuilder.append( String.format( "%.2f", this.receiptFields.get(ReceiptFieldType.TaxableSubtotalAfterDiscount)));
+				jsonStrBuilder.append(",\n");
 			}
 			
 			if( receiptFieldType.equals(ReceiptFieldType.TaxableTotal) ) {
-				jsonStrBuilder.append( "\t\"Tax total:\"");
+				jsonStrBuilder.append( "\t\"Taxable total\": ");
 				jsonStrBuilder.append(String.format( "%.2f", this.receiptFields.get(ReceiptFieldType.TaxableTotal)) );
 				jsonStrBuilder.append(",\n");
 			}	
-			
-	   		if( receiptFieldType.equals(ReceiptFieldType.GrandTotal) ) {
-				jsonStrBuilder.append( "\t\"Grand total:\"");
-				jsonStrBuilder.append( String.format( "%.2f", this.receiptFields.get(ReceiptFieldType.GrandTotal)));
-				jsonStrBuilder.append("\n");
-			}
+
+			if( receiptFieldType.equals(ReceiptFieldType.TotalTax) ) {
+				jsonStrBuilder.append( "\t\"Tax total\": ");
+				jsonStrBuilder.append(String.format( "%.2f", this.receiptFields.get(ReceiptFieldType.TotalTax)) );
+				jsonStrBuilder.append(",\n");
+			}	
 	   		
-		}
+		}	
+		jsonStrBuilder.append( "\t\"Grand total\": ");
+		jsonStrBuilder.append( String.format( "%.2f", this.receiptFields.get(ReceiptFieldType.GrandTotal)));
+		jsonStrBuilder.append("\n");
 		jsonStrBuilder.append("\n\t\t}\n}\n\n");
 		return jsonStrBuilder.toString();
 	}

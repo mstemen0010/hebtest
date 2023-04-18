@@ -20,9 +20,6 @@ import com.heb.hebtest.service.controller.receiptservice.Receipt.ReceiptFieldTyp
 @RestController
 public class ReceiptComtroller {
 
-	@Autowired
-	CouponController couponController;
-
 	SoftCart cart;
 	Receipt receipt;
 	Double sum = 0.0;
@@ -38,6 +35,7 @@ public class ReceiptComtroller {
 	@PostMapping(value = { "/total", "/1" }, consumes = "application/json")
 	public String sumTotal(@RequestBody List<GroceryItem> items) {
 		cart.setContents(items);
+		receipt.reset(false);
 		receipt.addReceiptFieldType(ReceiptFieldType.GrandTotal);
 		sum = items.stream().map(x -> x.getPrice()).collect(Collectors.summingDouble(Double::doubleValue));
 
@@ -77,32 +75,33 @@ public class ReceiptComtroller {
 	
 	// Feature #4
 		@PostMapping(value = { "/calcAllAppyCoupons", "/4" }, consumes = "application/json")
-		public String sumAllApplyCoupons(@RequestBody List<GroceryItem> items) {;
-			
-			sumTotal(items);
+		public String sumAllApplyCoupons(@RequestBody List<GroceryItem> items) {			
+			double subTotalBeforeDiscount= items.stream().map(x -> x.getPrice()).collect(Collectors.summingDouble(Double::doubleValue));
+			receipt.addFieldAndValue( ReceiptFieldType.SubtotalBeforeDiscounts, subTotalBeforeDiscount);
+
+			cart.setContents(items);
 			double discountTotal = cart.processCoupoms();
-			sumAndTaxTotal(cart.getCartContents());
+			List<GroceryItem> adjustedCartItems = cart.getCartContents();
 			receipt.addFieldAndValue(ReceiptFieldType.DiscountTotal, discountTotal);
-			double subTotalAfterDiscount = sum - discountTotal;
-			receipt.addFieldAndValue( ReceiptFieldType.SubtotalWithDiscounts, subTotalAfterDiscount);
-			double taxableTotalAfterDiscounts = taxableSum - discountTotal;
-			receipt.addFieldAndValue( ReceiptFieldType.TaxableSubtotalAfterDiscount, taxableTotalAfterDiscounts );
 			
-			receipt.addReceiptFieldType(ReceiptFieldType.GrandTotal);
-			sumTotal(items);
-			receipt.setSubTotal(sum);
-			double taxableSum = items.stream().filter(w -> w.getIsTaxable()).map(x -> x.getPrice())
+			double subTotalAfterDiscount = subTotalBeforeDiscount - discountTotal;
+			receipt.addFieldAndValue( ReceiptFieldType.SubtotalAfterDiscounts, subTotalAfterDiscount);
+			
+			double taxableSubTotalAfterDiscount = adjustedCartItems.stream().filter(w -> w.getIsTaxable()).map(x -> x.getPrice())
 					.collect(Collectors.summingDouble(Double::doubleValue));
+		
+			taxableSubTotalAfterDiscount -= discountTotal;
+			double salesTax = receipt.applySalesTaxToTaxaAbleSum(subTotalBeforeDiscount, taxableSubTotalAfterDiscount);
+			receipt.addFieldAndValue(ReceiptFieldType.DiscountTotal, discountTotal);
+			receipt.removeReceiptType(ReceiptFieldType.TaxableSubTotal);
 			
-			receipt.applySalesTaxToTaxaAbleSum(sum, taxableSum);
+		
+			receipt.addFieldAndValue( ReceiptFieldType.TaxableSubtotalAfterDiscount, taxableSubTotalAfterDiscount );
+
+			
+			receipt.addFieldAndValue(ReceiptFieldType.TotalTax, salesTax);
+	
 			return receipt.toJson();
 		}
-	
-	
-
-	@GetMapping("/error")
-	public String showError() {
-		return "Invalid Service request";
-	}
 
 }
