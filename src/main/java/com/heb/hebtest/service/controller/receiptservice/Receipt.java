@@ -163,7 +163,7 @@ public class Receipt {
 		jsonStrBuilder.append( "\t\"Grand total\": ");
 		jsonStrBuilder.append( String.format( "%.2f", this.receiptFields.get(ReceiptFieldType.GrandTotal)));
 		jsonStrBuilder.append("\n");
-		jsonStrBuilder.append("\n\t\t}\n}\n\n");
+		jsonStrBuilder.append("\t}\n}\n\n");
 		return jsonStrBuilder.toString();
 	}
 	
